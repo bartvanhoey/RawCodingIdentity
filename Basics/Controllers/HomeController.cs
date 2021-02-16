@@ -3,11 +3,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Basics.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly IAuthorizationService _authorizationService;
+
+        public HomeController(IAuthorizationService authorizationService)
+        {
+            _authorizationService = authorizationService;
+        }
 
         public IActionResult Index()
         {
@@ -59,6 +66,35 @@ namespace Basics.Controllers
 
             return RedirectToAction("Index");
         }
+
+        public async Task<IActionResult> DoStuff()
+        {
+            // doing stuff here
+            var builder = new AuthorizationPolicyBuilder("Schema");
+            var customPolicy = builder.RequireClaim("Hello").Build();
+            var authResult = await _authorizationService.AuthorizeAsync(User, customPolicy);
+            if (authResult.Succeeded)
+            {
+                return View("Index");
+            }
+
+            return View("Index");
+        }
+
+        public async Task<IActionResult> DoStuffFromServices([FromServices] IAuthorizationService authorizationService)
+        {
+            // doing stuff here
+            var builder = new AuthorizationPolicyBuilder("Schema");
+            var customPolicy = builder.RequireClaim("Hello").Build();
+            var authResult = await authorizationService.AuthorizeAsync(User, customPolicy);
+            if (authResult.Succeeded)
+            {
+                return View("Index");
+            }
+
+            return View("Index");
+        }
+
 
     }
 }
